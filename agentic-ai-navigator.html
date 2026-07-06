@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Agentic Ledger — SAP S/4HANA Agentic AI Value Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-950:#1A1A1A;
+  --navy-900:#262626;
+  --navy-800:#333333;
+  --navy-700:#454545;
+  --navy-600:#5C5C5C;
+  --paper:#F3F3F1;
+  --paper-2:#E8E8E5;
+  --card:#FFFFFF;
+  --ink:#1A1A1A;
+  --ink-soft:#55555A;
+  --ink-faint:#8C8C90;
+  --gold:#FFE600;
+  --gold-deep:#E6C200;
+  --gold-pale:#FFF6B8;
+  --teal:#2A7F8E;
+  --teal-pale:#DCEEF0;
+  --green:#2E6E4E;
+  --green-pale:#DCEBE0;
+  --red:#A93E30;
+  --red-pale:#F3DFD9;
+  --line:#DCDCD8;
+  --line-dark:#333333;
+  --shadow: 0 12px 32px rgba(0,0,0,0.08);
+  --radius: 14px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Fraunces',serif; margin:0; color:var(--ink);}
+p{line-height:1.65; color:var(--ink-soft); margin:0 0 14px 0;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a{color:inherit;}
+::selection{background:var(--gold-pale);}
+
+/* ===== App shell ===== */
+.app{
+  display:grid;
+  grid-template-columns: 250px 1fr;
+  min-height:100vh;
+}
+.sidebar{
+  background:linear-gradient(180deg,var(--navy-950),var(--navy-900) 60%, var(--navy-800));
+  color:#F1F1EF;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 20px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+.brand{
+  display:flex; align-items:center; gap:10px; cursor:pointer;
+  padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.12);
+}
+.brand-mark{
+  width:34px; height:34px; border-radius:8px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Fraunces',serif; font-weight:700; color:var(--navy-950); font-size:16px;
+  flex:none;
+}
+.brand-text .t1{font-family:'Fraunces',serif; font-size:15.5px; font-weight:600; line-height:1.15; color:#fff;}
+.brand-text .t2{font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.09em; color:var(--gold-pale); text-transform:uppercase; margin-top:3px;}
+
+.navlabel{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(230,230,226,0.4); padding:0 6px; margin-top:4px;}
+
+nav.pages{display:flex; flex-direction:column; gap:3px;}
+.navitem{
+  display:flex; align-items:center; gap:11px;
+  padding:10px 10px;
+  border-radius:9px;
+  cursor:pointer;
+  color:rgba(230,230,226,0.72);
+  transition:background 0.15s ease, color 0.15s ease;
+  border:1px solid transparent;
+}
+.navitem:hover{background:rgba(255,255,255,0.06); color:#fff;}
+.navitem.active{background:rgba(255,230,0,0.16); color:#fff; border-color:rgba(255,230,0,0.4);}
+.navitem .num{
+  width:24px; height:24px; border-radius:50%;
+  border:1px solid rgba(230,230,226,0.35);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono',monospace; font-size:10.5px; flex:none;
+  color:rgba(230,230,226,0.8);
+}
+.navitem.active .num{background:var(--gold); border-color:var(--gold); color:var(--navy-950); font-weight:700;}
+.navitem .lbl{font-size:13.3px; font-weight:500;}
+.navitem .sub{display:block; font-size:10.5px; color:rgba(230,230,226,0.45); font-weight:400; margin-top:1px;}
+
+.sidebar-foot{
+  margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.12);
+  font-size:10.5px; color:rgba(230,230,226,0.4); line-height:1.6;
+}
+
+/* ===== Main content ===== */
+main.content{padding:0; min-width:0;}
+.page{display:none; animation:fade .35s ease;}
+.page.active{display:block;}
+@keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.page-inner{max-width:1080px; margin:0 auto; padding:56px 48px 90px;}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.16em; text-transform:uppercase;
+  color:var(--ink); display:flex; align-items:center; gap:10px; margin-bottom:14px;
+}
+.eyebrow::before{content:''; width:26px; height:1px; background:var(--gold);}
+.page-head h1{font-size:clamp(28px,3.4vw,42px); font-weight:600; line-height:1.12; letter-spacing:-0.01em;}
+.page-head .lede{font-size:16.5px; margin-top:16px; max-width:760px; color:var(--ink-soft);}
+.divider{height:1px; background:var(--line); margin:40px 0;}
+
+.section-title{display:flex; align-items:baseline; gap:12px; margin-bottom:6px;}
+.section-title h2{font-size:22px; font-weight:600;}
+.section-title .tag{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.08em;}
+.section-sub{color:var(--ink-soft); font-size:14.5px; max-width:700px; margin-bottom:26px;}
+
+/* ===== Cards / grids ===== */
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:24px; box-shadow:var(--shadow);
+}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+.grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+
+/* ===== HOME (BASE) ===== */
+.hero{
+  background:radial-gradient(ellipse at top left, var(--navy-800), var(--navy-950) 70%);
+  color:#F1F1EF; border-radius:0 0 28px 28px; position:relative; overflow:hidden;
+  padding:64px 48px 58px;
+}
+.hero::after{
+  content:''; position:absolute; right:-120px; top:-120px; width:420px; height:420px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,230,0,0.25), transparent 70%);
+}
+.hero-inner{max-width:1080px; margin:0 auto; position:relative; z-index:1;}
+.hero .eyebrow{color:var(--gold-pale);}
+.hero .eyebrow::before{background:var(--gold-pale);}
+.hero h1{font-size:clamp(32px,4.4vw,54px); color:#fff; font-weight:600; line-height:1.08; max-width:820px; letter-spacing:-0.015em;}
+.hero .lede{color:rgba(230,230,226,0.78); font-size:17.5px; max-width:640px; margin-top:20px;}
+.hero-stats{display:flex; gap:0; margin-top:38px; border-top:1px solid rgba(230,230,226,0.18); padding-top:26px; flex-wrap:wrap;}
+.hstat{flex:1; min-width:150px; padding-right:22px;}
+.hstat .n{font-family:'Fraunces',serif; font-size:30px; color:var(--gold-pale); font-weight:600;}
+.hstat .l{font-size:12px; color:rgba(230,230,226,0.65); margin-top:4px; line-height:1.4;}
+
+.home-body{max-width:1080px; margin:0 auto; padding:54px 48px 90px;}
+.map-row{display:grid; grid-template-columns: 1.15fr 0.85fr; gap:28px; align-items:stretch; margin-bottom:52px;}
+.map-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:26px 28px; box-shadow:var(--shadow);}
+.map-card h3{font-size:17px; margin-bottom:10px;}
+
+.journey{display:flex; flex-direction:column; gap:0;}
+.jstep{display:flex; gap:14px; padding:12px 0; border-bottom:1px dashed var(--line);}
+.jstep:last-child{border-bottom:none;}
+.jstep .jn{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink); font-weight:600; padding-top:2px; width:20px; flex:none;}
+.jstep .jt{font-weight:600; font-size:14px; color:var(--ink); margin-bottom:2px;}
+.jstep .jd{font-size:12.8px; color:var(--ink-soft); line-height:1.5;}
+
+.module-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+.modcard{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px; cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  position:relative;
+}
+.modcard:hover{transform:translateY(-4px); box-shadow:var(--shadow); border-color:var(--gold);}
+.modcard .mnum{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; color:#fff; background:var(--navy-900);
+  width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+}
+.modcard h4{font-size:15.5px; margin-bottom:8px; line-height:1.3;}
+.modcard p{font-size:12.8px; margin:0; color:var(--ink-soft);}
+.modcard .go{position:absolute; top:20px; right:20px; font-size:16px; color:var(--ink); opacity:0; transition:opacity .18s;}
+.modcard:hover .go{opacity:1;}
+
+.callout-band{
+  display:flex; gap:20px; align-items:center; background:var(--navy-900); color:#fff;
+  border-radius:var(--radius); padding:24px 28px; margin-top:52px;
+}
+.callout-band .icon{width:44px;height:44px;border-radius:10px;background:rgba(255,230,0,0.2); display:flex;align-items:center;justify-content:center; font-size:20px; flex:none;}
+.callout-band h4{color:#fff; font-size:15.5px; margin-bottom:4px;}
+.callout-band p{color:rgba(230,230,226,0.72); font-size:13px; margin:0;}
+
+.source-note{margin-top:20px; font-size:11.5px; color:var(--ink-faint); font-style:italic;}
+
+/* ===== Page nav footer (prev/next) ===== */
+.page-foot{
+  display:flex; justify-content:space-between; align-items:center; margin-top:56px; padding-top:22px; border-top:1px solid var(--line);
+}
+.pfbtn{
+  display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--navy-800);
+  cursor:pointer; padding:10px 16px; border-radius:9px; border:1px solid var(--line); background:#fff;
+  transition:border-color .15s;
+}
+.pfbtn:hover{border-color:var(--gold);}
+.pfbtn.disabled{opacity:0.35; pointer-events:none;}
+
+/* ===== Timeline / pipeline (page 2) ===== */
+.pipeline{display:flex; gap:0; overflow-x:auto; padding-bottom:12px; margin:26px 0 8px;}
+.pipe-step{flex:1; min-width:150px; position:relative; padding:0 14px 0 0;}
+.pipe-step:not(:last-child)::after{
+  content:'›'; position:absolute; right:-2px; top:20px; color:var(--gold); font-size:20px; font-weight:700;
+}
+.pipe-dot{width:34px; height:34px; border-radius:50%; background:var(--navy-900); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; margin-bottom:12px;}
+.pipe-step h4{font-size:13.5px; margin-bottom:6px; line-height:1.3;}
+.pipe-step p{font-size:11.8px; color:var(--ink-soft); margin:0;}
+
+.loop-note{display:flex; align-items:center; gap:10px; margin-top:22px; padding:14px 18px; background:var(--teal-pale); border-radius:10px; border:1px solid #bfe0e5;}
+.loop-note span.ic{font-size:18px;}
+.loop-note p{margin:0; font-size:12.8px; color:#1c5a66;}
+
+/* ===== Comparison cards (page 3) ===== */
+.agent-compare{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:24px 0 8px;}
+.agent-card{border-radius:var(--radius); padding:24px; border:1px solid var(--line); position:relative; overflow:hidden;}
+.agent-card.insight{background:var(--teal-pale); border-color:#bfe0e5;}
+.agent-card.action{background:var(--gold-pale); border-color:#F2DE7A;}
+.agent-card .kicker{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; opacity:0.75;}
+.agent-card.insight .kicker{color:#1c5a66;}
+.agent-card.action .kicker{color:var(--ink);}
+.agent-card h3{font-size:19px; margin-bottom:10px;}
+.agent-card p.def{font-size:13.6px; color:var(--ink); margin-bottom:14px;}
+.agent-card ul{margin:0; padding-left:18px;}
+.agent-card li{font-size:12.8px; color:var(--ink-soft); margin-bottom:6px; line-height:1.5;}
+.agent-card .ex{margin-top:14px; font-size:11.8px; padding:10px 12px; border-radius:8px; background:rgba(255,255,255,0.55);}
+.agent-card .ex b{color:var(--ink);}
+
+/* ===== Criteria + analyzer (page 3) ===== */
+.analyzer{
+  background:var(--navy-950); border-radius:20px; padding:34px 34px 30px; margin-top:36px; color:#F1F1EF;
+  display:grid; grid-template-columns: 1.15fr 0.85fr; gap:34px;
+}
+.analyzer h3{color:#fff; font-size:19px; margin-bottom:4px;}
+.analyzer .a-sub{color:rgba(230,230,226,0.6); font-size:12.8px; margin-bottom:22px;}
+.crit-row{margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid rgba(230,230,226,0.1);}
+.crit-row:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
+.crit-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+.crit-top .cl{font-size:13px; font-weight:600; color:#fff;}
+.crit-top .cv{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold-pale); background:rgba(255,230,0,0.18); padding:1px 8px; border-radius:10px;}
+.crit-desc{font-size:11.5px; color:rgba(230,230,226,0.5); margin-bottom:8px; line-height:1.4;}
+input[type=range]{
+  -webkit-appearance:none; width:100%; height:4px; border-radius:3px; background:rgba(230,230,226,0.18); outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--gold); cursor:pointer; border:2px solid #fff;
+  box-shadow:0 0 0 3px rgba(255,230,0,0.25);
+}
+input[type=range]::-moz-range-thumb{width:16px; height:16px; border-radius:50%; background:var(--gold); cursor:pointer; border:2px solid #fff;}
+
+.analyzer-result{display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center;}
+.radar-wrap{background:rgba(255,255,255,0.03); border-radius:14px; padding:14px; border:1px solid rgba(230,230,226,0.08);}
+.score-panel{margin-top:20px; width:100%;}
+.score-num{font-family:'Fraunces',serif; font-size:46px; font-weight:600; color:#fff; line-height:1;}
+.score-den{font-size:13px; color:rgba(230,230,226,0.5);}
+.verdict-badge{
+  display:inline-block; margin-top:14px; padding:9px 18px; border-radius:30px; font-weight:700; font-size:13px;
+  letter-spacing:0.02em;
+}
+.verdict-desc{margin-top:12px; font-size:12.3px; color:rgba(230,230,226,0.65); line-height:1.55;}
+.legend{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; justify-content:center;}
+.legend span{display:flex; align-items:center; gap:6px; font-size:10.5px; color:rgba(230,230,226,0.6);}
+.legend i{width:9px; height:9px; border-radius:50%; display:inline-block;}
+
+/* ===== Complexity tiers (page 4) ===== */
+.tier-card{border-radius:var(--radius); padding:26px; border:1px solid var(--line); background:#fff; box-shadow:var(--shadow); display:flex; flex-direction:column;}
+.tier-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+.tier-head h3{font-size:18px;}
+.tier-fuel{height:8px; border-radius:6px; background:var(--paper-2); overflow:hidden; margin:14px 0 18px;}
+.tier-fuel i{display:block; height:100%; border-radius:6px;}
+.tier-card ul{margin:0; padding-left:18px; flex:1;}
+.tier-card li{font-size:12.8px; color:var(--ink-soft); margin-bottom:9px; line-height:1.5;}
+.tier-badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.05em;}
+.tier-card.high{border-top:4px solid var(--red);}
+.tier-card.medium{border-top:4px solid var(--gold);}
+.tier-card.low{border-top:4px solid var(--green);}
+.tier-foot{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); font-size:11.8px; color:var(--ink-faint); display:flex; justify-content:space-between;}
+
+/* ===== Effort estimator (page 5) ===== */
+.calc-wrap{display:grid; grid-template-columns:0.9fr 1.1fr; gap:26px; margin-top:26px;}
+.calc-inputs{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:26px; box-shadow:var(--shadow);}
+.calc-inputs h3{font-size:16px; margin-bottom:18px;}
+.qty-row{display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--paper-2);}
+.qty-row:last-of-type{border-bottom:none;}
+.qty-label{display:flex; align-items:center; gap:10px;}
+.qty-dot{width:10px;height:10px;border-radius:50%;}
+.qty-label .qt{font-size:13.5px; font-weight:600;}
+.qty-label .qs{font-size:11px; color:var(--ink-faint); display:block;}
+.qty-input{display:flex; align-items:center; gap:8px;}
+.qty-input button{
+  width:28px; height:28px; border-radius:7px; border:1px solid var(--line); background:var(--paper); cursor:pointer; font-size:15px;
+  color:var(--navy-800); font-weight:700; line-height:1;
+}
+.qty-input span{font-family:'IBM Plex Mono',monospace; width:26px; text-align:center; font-size:14px; font-weight:600;}
+.pod-slider{margin-top:20px; padding-top:18px; border-top:1px solid var(--paper-2);}
+.pod-slider .pl{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px; font-weight:600;}
+.pod-slider input[type=range]{background:var(--paper-2);}
+.pod-slider input[type=range]::-webkit-slider-thumb{background:var(--navy-800); box-shadow:0 0 0 3px rgba(21,50,82,0.15);}
+
+.calc-output{background:var(--navy-950); border-radius:var(--radius); padding:26px; color:#fff;}
+.out-top{display:flex; gap:22px; margin-bottom:22px;}
+.out-metric{flex:1;}
+.out-metric .om-n{font-family:'Fraunces',serif; font-size:34px; color:var(--gold-pale); font-weight:600; line-height:1;}
+.out-metric .om-l{font-size:11px; color:rgba(230,230,226,0.55); margin-top:6px;}
+.bar-chart{display:flex; flex-direction:column; gap:10px; margin-bottom:18px;}
+.bar-row{display:flex; align-items:center; gap:10px;}
+.bar-row .br-l{width:64px; font-size:11px; color:rgba(230,230,226,0.6); flex:none;}
+.bar-track{flex:1; height:14px; background:rgba(230,230,226,0.1); border-radius:7px; overflow:hidden;}
+.bar-fill{height:100%; border-radius:7px; transition:width .3s ease;}
+.bar-row .br-v{width:34px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#fff; flex:none;}
+.calc-note{font-size:11.3px; color:rgba(230,230,226,0.5); border-top:1px solid rgba(230,230,226,0.12); padding-top:14px; line-height:1.55;}
+
+/* ===== POD page 6 ===== */
+.role-card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.role-card .ricon{width:38px; height:38px; border-radius:10px; background:var(--navy-900); color:var(--gold-pale); display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:12px;}
+.role-card h4{font-size:14.5px; margin-bottom:6px;}
+.role-card p{font-size:12px; margin-bottom:10px;}
+.role-cap{display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink); background:var(--gold-pale); width:fit-content; padding:3px 9px; border-radius:20px;}
+
+.sprint-cal{display:flex; gap:8px; margin-top:22px; flex-wrap:wrap;}
+.sprint-block{flex:1; min-width:120px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center;}
+.sprint-block .sb-n{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint); margin-bottom:6px;}
+.sprint-block .sb-w{font-size:13px; font-weight:700; color:var(--navy-900);}
+.sprint-block .sb-d{font-size:10.5px; color:var(--ink-faint); margin-top:3px;}
+.qtr-brace{text-align:center; margin-top:10px; font-size:11.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace;}
+
+.two-col-note{display:flex; gap:16px; align-items:flex-start; background:var(--teal-pale); border:1px solid #bfe0e5; border-radius:12px; padding:16px 18px; margin-top:24px;}
+.two-col-note .ic{font-size:20px;}
+.two-col-note p{margin:0; color:#1c5a66; font-size:12.8px;}
+
+/* ===== Responsive ===== */
+@media (max-width: 980px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{position:relative; height:auto; flex-direction:row; overflow-x:auto; align-items:center; padding:16px;}
+  .brand{border-bottom:none; padding-bottom:0; border-right:1px solid rgba(255,255,255,0.12); padding-right:16px;}
+  nav.pages{flex-direction:row;}
+  .navitem .sub{display:none;}
+  .navlabel{display:none;}
+  .sidebar-foot{display:none;}
+  .grid2, .grid3, .grid4, .agent-compare, .analyzer, .calc-wrap, .map-row, .module-grid{grid-template-columns:1fr;}
+  .page-inner, .home-body{padding:36px 22px 70px;}
+  .hero{padding:44px 22px 40px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR NAV ============ -->
+  <aside class="sidebar">
+    <div class="brand" onclick="goPage('base')">
+      <div class="brand-mark">A</div>
+      <div class="brand-text">
+        <div class="t1">Agentic Value<br>Navigator</div>
+        <div class="t2">SAP ECC → S/4HANA</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="navlabel">Home</div>
+      <nav class="pages">
+        <div class="navitem active" data-page="base" onclick="goPage('base')">
+          <span class="num">•</span>
+          <span class="lbl">Base<span class="sub">Landing overview</span></span>
+        </div>
+      </nav>
+    </div>
+
+    <div>
+      <div class="navlabel">The Playbook</div>
+      <nav class="pages">
+        <div class="navitem" data-page="p1" onclick="goPage('p1')"><span class="num">1</span><span class="lbl">Background<span class="sub">Why & when to use this</span></span></div>
+        <div class="navitem" data-page="p2" onclick="goPage('p2')"><span class="num">2</span><span class="lbl">Overall Approach<span class="sub">The agile operating model</span></span></div>
+        <div class="navitem" data-page="p3" onclick="goPage('p3')"><span class="num">3</span><span class="lbl">Use Case Selection<span class="sub">Agentic fit analyzer</span></span></div>
+        <div class="navitem" data-page="p4" onclick="goPage('p4')"><span class="num">4</span><span class="lbl">Complexity<span class="sub">High / medium / low</span></span></div>
+        <div class="navitem" data-page="p5" onclick="goPage('p5')"><span class="num">5</span><span class="lbl">Effort Estimator<span class="sub">Sprints & quarters</span></span></div>
+        <div class="navitem" data-page="p6" onclick="goPage('p6')"><span class="num">6</span><span class="lbl">Build POD<span class="sub">Team & duration</span></span></div>
+      </nav>
+    </div>
+
+    <div class="sidebar-foot">
+      Directional framework informed by publicly available leading practice from EY.com and McKinsey.com. Figures are illustrative planning assumptions, not commitments.
+    </div>
+  </aside>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="content">
+
+    <!-- ================= BASE / HOME ================= -->
+    <section class="page active" id="page-base">
+      <div class="hero">
+        <div class="hero-inner">
+          <div class="eyebrow">Order to Cash · Procure to Pay · Tax · Treasury</div>
+          <h1>Innovation at the Edge</h1>
+          <p class="lede">As the enterprise moves from SAP ECC to SAP S/4HANA, the mandate is to keep the core clean and innovate at the edge — with AI Insight Agents and AI Action Agents layered on SAP BTP, SAP BDC, and Snowflake. This navigator turns that mandate into a repeatable, defensible method: qualify the use case, size the agent, and staff the build.</p>
+          <div class="hero-stats">
+            <div class="hstat"><div class="n">7</div><div class="l">weighted criteria in the Agentic Use Case Analyzer</div></div>
+            <div class="hstat"><div class="n">3</div><div class="l">complexity tiers — High, Medium, Low</div></div>
+            <div class="hstat"><div class="n">6</div><div class="l">two-week sprints per delivery quarter</div></div>
+            <div class="hstat"><div class="n">5</div><div class="l">core roles in every build POD</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-body">
+        <div class="map-row">
+          <div class="map-card">
+            <div class="eyebrow" style="margin-bottom:8px;">The Journey</div>
+            <h3>How to move through this navigator</h3>
+            <div class="journey">
+              <div class="jstep"><div class="jn">01</div><div><div class="jt">Ground the context</div><div class="jd">Understand the ECC-to-S/4 transformation and where agents fit on the current data landscape.</div></div></div>
+              <div class="jstep"><div class="jn">02</div><div><div class="jt">Learn the operating model</div><div class="jd">See the agile, domain-by-domain approach from data foundation through hypercare.</div></div></div>
+              <div class="jstep"><div class="jn">03</div><div><div class="jt">Qualify the use case</div><div class="jd">Score it against seven criteria to decide: AI Insight Agent, AI Action Agent, or neither.</div></div></div>
+              <div class="jstep"><div class="jn">04</div><div><div class="jt">Size the complexity</div><div class="jd">Classify the agent as High, Medium, or Low complexity using consistent definitions.</div></div></div>
+              <div class="jstep"><div class="jn">05</div><div><div class="jt">Estimate the effort</div><div class="jd">Translate complexity and volume into sprints, weeks, and quarters.</div></div></div>
+              <div class="jstep"><div class="jn">06</div><div><div class="jt">Staff the POD</div><div class="jd">Confirm the roles, hours, and cadence needed to actually ship it.</div></div></div>
+            </div>
+          </div>
+
+          <div class="map-card" style="display:flex; flex-direction:column;">
+            <div class="eyebrow" style="margin-bottom:8px;">Current Landscape</div>
+            <h3>Where agents sit today</h3>
+            <p style="font-size:13px; margin-bottom:16px;">The present-state technology core that every use case must be designed against.</p>
+            <div id="landscape-svg" style="flex:1; display:flex; align-items:center; justify-content:center;"></div>
+            <p style="font-size:11.5px; color:var(--ink-faint); margin:10px 0 0;">SAP ECC remains system of record today; SAP BTP and BDC carry integration and extension; Snowflake is the enterprise data lake. SAP S/4HANA arrives as the future core.</p>
+          </div>
+        </div>
+
+        <div class="section-title"><h2>Six chapters, one decision</h2></div>
+        <div class="section-sub">Each module below stands on its own, but together they form the end-to-end method the team uses to move a raw idea from a business function to a funded, staffed, sprint-planned agent.</div>
+        <div class="module-grid">
+          <div class="modcard" onclick="goPage('p1')"><div class="mnum">1</div><h4>Background</h4><p>The ECC-to-S/4 transformation, the "clean core, smart edge" mandate, and when this app should be opened.</p><div class="go">→</div></div>
+          <div class="modcard" onclick="goPage('p2')"><div class="mnum">2</div><h4>Overall Approach</h4><p>An agile, domain-led operating model — from data foundation to continuous monitoring.</p><div class="go">→</div></div>
+          <div class="modcard" onclick="goPage('p3')"><div class="mnum">3</div><h4>Use Case Selection</h4><p>Insight vs. Action agents, and the interactive Agentic Use Case Analyzer.</p><div class="go">→</div></div>
+          <div class="modcard" onclick="goPage('p4')"><div class="mnum">4</div><h4>Complexity</h4><p>A common language for High, Medium, and Low complexity agents.</p><div class="go">→</div></div>
+          <div class="modcard" onclick="goPage('p5')"><div class="mnum">5</div><h4>Effort Estimator</h4><p>A live calculator turning use case volume into sprints and quarters.</p><div class="go">→</div></div>
+          <div class="modcard" onclick="goPage('p6')"><div class="mnum">6</div><h4>Build POD</h4><p>Roles, weekly hours, and the sprint cadence that delivers the roadmap.</p><div class="go">→</div></div>
+        </div>
+
+        <div class="callout-band">
+          <div class="icon">◆</div>
+          <div>
+            <h4>Guardrail worth repeating</h4>
+            <p>Agentic AI is a powerful tool, not a default answer. A use case that fails the analyzer on Page 3 is not a failure of the business — it is very likely a strong candidate for advanced analytics or RPA instead, at a fraction of the cost and risk.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 1: BACKGROUND ================= -->
+    <section class="page" id="page-p1">
+      <div class="page-inner">
+        <div class="page-head">
+          <div class="eyebrow">Chapter One</div>
+          <h1>Background — why this exists, and when to open it</h1>
+          <p class="lede">Clients running SAP ECC and launching a transformation to SAP S/4HANA face a familiar temptation: customize the core to chase every use case. The stronger path — and the one this navigator supports — is to keep the S/4 core clean and simple, and push innovation to the edge through AI Insight Agents and AI Action Agents.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title"><h2>The transformation context</h2></div>
+        <div class="section-sub">Dozens of use cases have already been collected from Order to Cash, Procure to Pay, Tax, and Treasury. Not all of them belong on an agentic roadmap — and treating every idea as an "AI use case" is itself a risk to manage.</div>
+
+        <div class="grid2">
+          <div class="card">
+            <h3 style="font-size:16px; margin-bottom:10px;">Today's landscape</h3>
+            <p style="font-size:13.5px;">SAP ECC remains the transactional system of record. SAP BTP provides the extension and integration layer, SAP BDC (Business Data Cloud) harmonizes SAP data products, and Snowflake operates as the enterprise data lake that already blends SAP and non-SAP sources.</p>
+          </div>
+          <div class="card">
+            <h3 style="font-size:16px; margin-bottom:10px;">Where it's heading</h3>
+            <p style="font-size:13.5px;">SAP ECC is upgraded to SAP S/4HANA. The core is kept intentionally simple; differentiation happens at the edge, where Insight and Action Agents read from the data lake and, where appropriate, act back into SAP through governed, monitored interfaces.</p>
+          </div>
+        </div>
+
+        <div id="landscape-svg-2" style="margin:28px 0; display:flex; justify-content:center;"></div>
+
+        <div class="section-title" style="margin-top:12px;"><h2>When to open this navigator</h2></div>
+        <div class="section-sub">Use it at the moment a business function hands over a raw idea, before any build effort is committed.</div>
+
+        <div class="grid4">
+          <div class="card" style="padding:18px;">
+            <div class="qty-dot" style="background:var(--gold); width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'IBM Plex Mono',monospace; font-size:12px; margin-bottom:12px;">1</div>
+            <h4 style="font-size:13.5px; margin-bottom:6px;">A use case is proposed</h4>
+            <p style="font-size:12px; margin:0;">Business raises an idea from O2C, P2P, Tax, or Treasury — described in plain business language, not technology.</p>
+          </div>
+          <div class="card" style="padding:18px;">
+            <div class="qty-dot" style="background:var(--teal); width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'IBM Plex Mono',monospace; font-size:12px; margin-bottom:12px;">2</div>
+            <h4 style="font-size:13.5px; margin-bottom:6px;">Fit is unclear</h4>
+            <p style="font-size:12px; margin:0;">No one is yet sure whether it needs an agent, a dashboard, or a simple automation script.</p>
+          </div>
+          <div class="card" style="padding:18px;">
+            <div class="qty-dot" style="background:var(--navy-800); width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'IBM Plex Mono',monospace; font-size:12px; margin-bottom:12px;">3</div>
+            <h4 style="font-size:13.5px; margin-bottom:6px;">Funding is being scoped</h4>
+            <p style="font-size:12px; margin:0;">Leadership needs a defensible sprint and headcount estimate before it enters the roadmap.</p>
+          </div>
+          <div class="card" style="padding:18px;">
+            <div class="qty-dot" style="background:var(--green); width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'IBM Plex Mono',monospace; font-size:12px; margin-bottom:12px;">4</div>
+            <h4 style="font-size:13.5px; margin-bottom:6px;">A POD needs a backlog</h4>
+            <p style="font-size:12px; margin:0;">A standing build POD needs its next quarter of sprints planned and staffed.</p>
+          </div>
+        </div>
+
+        <div class="two-col-note" style="margin-top:30px;">
+          <div class="ic">i</div>
+          <p>This is a qualification and estimation tool, not a build tool. It answers "should we, and how much will it take" — the actual data architecture, agent orchestration, and CI/CD pipeline work happen downstream, once a use case has cleared this front door.</p>
+        </div>
+
+        <div class="page-foot">
+          <div class="pfbtn disabled">← Back</div>
+          <div class="pfbtn" onclick="goPage('p2')">Next: Overall Approach →</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 2: OVERALL APPROACH ================= -->
+    <section class="page" id="page-p2">
+      <div class="page-inner">
+        <div class="page-head">
+          <div class="eyebrow">Chapter Two</div>
+          <h1>Overall approach — the agile operating model</h1>
+          <p class="lede">Agents are not built one at a time in isolation. The operating model is domain-led and agile: lay the data foundation for a functional domain once, then run a repeatable cycle of selection, estimation, build, test, deploy, and hypercare for every use case inside it.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title"><h2>The delivery pipeline</h2></div>
+        <div class="section-sub">Illustrated for one functional domain, e.g. Order to Cash. The same pipeline repeats for Procure to Pay, Tax, and Treasury, sharing common platform components where possible.</div>
+
+        <div class="pipeline">
+          <div class="pipe-step"><div class="pipe-dot">01</div><h4>Data Foundation</h4><p>Stand up the domain's data model on Snowflake, sourced from SAP ECC/S4 via BTP and BDC.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">02</div><h4>Use Case Selection</h4><p>Run candidate use cases through the Agentic Use Case Analyzer.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">03</div><h4>Complexity & Effort</h4><p>Classify complexity, then size sprints and quarters.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">04</div><h4>Build</h4><p>The POD develops the agent, its tools, and guardrails inside a CI/CD pipeline.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">05</div><h4>Test</h4><p>Functional, reasoning, and safety testing, including human-in-the-loop review of escalations.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">06</div><h4>Deploy</h4><p>Controlled release into the target business process with defined rollback paths.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">07</div><h4>Hypercare</h4><p>Elevated monitoring and rapid-response support immediately after go-live.</p></div>
+          <div class="pipe-step"><div class="pipe-dot">08</div><h4>Continuous Monitoring</h4><p>Ongoing performance, drift, and value tracking feeds the next backlog cycle.</p></div>
+        </div>
+
+        <div class="loop-note">
+          <span class="ic">↻</span>
+          <p>This is a loop, not a line. Continuous monitoring surfaces new candidate use cases and tuning opportunities, which re-enter Step 2 for the next sprint cycle — the core mechanism behind continuous learning and optimization.</p>
+        </div>
+
+        <div class="section-title" style="margin-top:44px;"><h2>Why domain-first, not agent-first</h2></div>
+        <div class="section-sub">Building the data foundation once per domain avoids re-plumbing the same tables for every new agent, and keeps the S/4 core clean by pushing integration logic to the edge.</div>
+
+        <div class="grid3">
+          <div class="card">
+            <h4 style="font-size:14.5px; margin-bottom:8px;">Reusable data products</h4>
+            <p style="font-size:12.8px;">Domain data is packaged once, with clear ownership and quality standards, so every agent in that domain can draw on trustworthy, governed data rather than building bespoke pipelines.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px; margin-bottom:8px;">Shared orchestration layer</h4>
+            <p style="font-size:12.8px;">Agents, tools, and SAP systems connect through a common orchestration and guardrail layer, keeping the core simple even as edge intelligence grows.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px; margin-bottom:8px;">Compounding velocity</h4>
+            <p style="font-size:12.8px;">Each subsequent agent in the same domain is faster to build than the last, because foundation, guardrails, and monitoring are already in place.</p>
+          </div>
+        </div>
+
+        <div class="page-foot">
+          <div class="pfbtn" onclick="goPage('p1')">← Back: Background</div>
+          <div class="pfbtn" onclick="goPage('p3')">Next: Use Case Selection →</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 3: USE CASE SELECTION ================= -->
+    <section class="page" id="page-p3">
+      <div class="page-inner">
+        <div class="page-head">
+          <div class="eyebrow">Chapter Three</div>
+          <h1>Use case selection — qualifying for agentic AI</h1>
+          <p class="lede">Before any complexity or effort conversation, every candidate must clear a single question: is this actually a job for an agent? Two agent archetypes exist on the "yes" side of that question — and a large, healthy share of use cases will land on the "no" side.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title"><h2>Two agent archetypes</h2></div>
+        <div class="section-sub">Both extend generative AI beyond passive content generation — the distinction is whether the agent stops at a recommendation, or carries it through to action inside SAP and adjacent systems.</div>
+
+        <div class="agent-compare">
+          <div class="agent-card insight">
+            <div class="kicker">Decision Support</div>
+            <h3>AI Insight Agent</h3>
+            <p class="def">Perceives data, reasons over it, and delivers a recommendation, explanation, or answer — a human remains the one who acts.</p>
+            <ul>
+              <li>Retrieves, correlates, and explains data across systems</li>
+              <li>Produces recommendations, forecasts, or narratives</li>
+              <li>Escalates ambiguity to a human rather than resolving it</li>
+              <li>Does not directly change a system of record</li>
+            </ul>
+            <div class="ex"><b>Example:</b> a Treasury cash-position chatbot that explains a liquidity shortfall and recommends a funding option for a human to approve.</div>
+          </div>
+          <div class="agent-card action">
+            <div class="kicker">Autonomous Execution</div>
+            <h3>AI Action Agent</h3>
+            <p class="def">Plans, decides, and executes multi-step actions across systems toward a defined goal — with humans supervising rather than performing the task.</p>
+            <ul>
+              <li>Breaks a goal into subtasks and sequences them</li>
+              <li>Calls tools and APIs to change records or trigger workflows</li>
+              <li>Operates within bounded autonomy and escalates high-impact decisions</li>
+              <li>Learns from outcomes to improve the next cycle</li>
+            </ul>
+            <div class="ex"><b>Example:</b> a Procure-to-Pay exception agent that matches, resolves, and posts routine invoice discrepancies without manual intervention.</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top:44px;"><h2>The Agentic Use Case Analyzer</h2></div>
+        <div class="section-sub">Rate the candidate use case from 1 (low) to 5 (high) against each of the seven criteria below. The tool computes a live composite score and a directional verdict — try adjusting the sliders.</div>
+
+        <div class="analyzer">
+          <div>
+            <h3>Score the use case</h3>
+            <div class="a-sub">All seven criteria are weighted equally in this baseline model.</div>
+            <div id="criteria-list"></div>
+          </div>
+          <div class="analyzer-result">
+            <div class="radar-wrap">
+              <svg id="radar-svg" width="270" height="270" viewBox="0 0 300 300"></svg>
+            </div>
+            <div class="score-panel">
+              <span class="score-num" id="score-num">28</span><span class="score-den"> / 35</span>
+              <div id="verdict-badge" class="verdict-badge">AI Action Agent</div>
+              <div class="verdict-desc" id="verdict-desc">High reasoning, autonomy, and multi-step orchestration — a strong candidate for a fully agentic action workflow.</div>
+            </div>
+            <div class="legend">
+              <span><i style="background:var(--red);"></i>Not Agentic (≤ 2.7 avg)</span>
+              <span><i style="background:var(--teal);"></i>AI Insight Agent (2.8–3.9)</span>
+              <span><i style="background:var(--gold);"></i>AI Action Agent (≥ 4.0)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col-note" style="margin-top:26px;">
+          <div class="ic">i</div>
+          <p>A low composite score is a good outcome, not a failed exercise — it correctly redirects the use case toward advanced analytics, a BI dashboard, or straightforward RPA, all of which are faster and cheaper to deliver than an agent built for the wrong problem.</p>
+        </div>
+
+        <div class="page-foot">
+          <div class="pfbtn" onclick="goPage('p2')">← Back: Overall Approach</div>
+          <div class="pfbtn" onclick="goPage('p4')">Next: Complexity →</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 4: COMPLEXITY ================= -->
+    <section class="page" id="page-p4">
+      <div class="page-inner">
+        <div class="page-head">
+          <div class="eyebrow">Chapter Four</div>
+          <h1>Identify the complexity of the agent</h1>
+          <p class="lede">Once a use case is confirmed as agentic, it needs a common complexity language before anyone can size the effort. Three tiers — High, Medium, Low — describe how much autonomy, orchestration, and governance the agent actually requires.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid3">
+          <div class="tier-card high">
+            <div class="tier-head"><h3>High</h3><span class="tier-badge" style="background:var(--red-pale); color:var(--red);">Tier 3</span></div>
+            <div class="tier-fuel"><i style="width:100%; background:var(--red);"></i></div>
+            <ul>
+              <li>Operates across multiple complex domains simultaneously</li>
+              <li>High autonomy: goal-driven orchestration with planning, multi-step reasoning, and dynamic decisions</li>
+              <li>Orchestrates multiple sub-agents and components</li>
+              <li>Handles complex technical requirements, e.g. non-standard or high-volume APIs</li>
+              <li>Requires continuous learning and user-specific adaptation</li>
+              <li>Demands high governance, monitoring, and risk controls</li>
+            </ul>
+            <div class="tier-foot"><span>POD velocity</span><span>1 per sprint</span></div>
+          </div>
+
+          <div class="tier-card medium">
+            <div class="tier-head"><h3>Medium</h3><span class="tier-badge" style="background:var(--gold-pale); color:var(--ink);">Tier 2</span></div>
+            <div class="tier-fuel"><i style="width:62%; background:var(--gold);"></i></div>
+            <ul>
+              <li>Operates across multiple related domains or tasks</li>
+              <li>Moderate autonomy with conditional branching, data retrieval, validation, and minor reasoning</li>
+              <li>Multiple system integrations using standard APIs</li>
+              <li>Context-aware with some personalization</li>
+              <li>Requires moderate monitoring and exception management</li>
+            </ul>
+            <div class="tier-foot"><span>POD velocity</span><span>2 per sprint</span></div>
+          </div>
+
+          <div class="tier-card low">
+            <div class="tier-head"><h3>Low</h3><span class="tier-badge" style="background:var(--green-pale); color:var(--green);">Tier 1</span></div>
+            <div class="tier-fuel"><i style="width:30%; background:var(--green);"></i></div>
+            <ul>
+              <li>Operates in a single domain with limited scope</li>
+              <li>Well-defined, rule-based tasks with minimal autonomy and few integrations</li>
+              <li>Minimal decision-making; mostly reactive</li>
+              <li>Limited need for personalization or contextual understanding</li>
+              <li>Easy to test and deploy with standard guardrails</li>
+            </ul>
+            <div class="tier-foot"><span>POD velocity</span><span>3 per sprint</span></div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top:44px;"><h2>How to apply the tiers</h2></div>
+        <div class="section-sub">Score the use case against each bullet within a tier; the tier where most descriptions genuinely fit — not the most ambitious tier — is the correct classification.</div>
+
+        <div class="grid2">
+          <div class="card">
+            <h4 style="font-size:14.5px; margin-bottom:8px;">Common misclassification</h4>
+            <p style="font-size:12.8px;">Teams often over-classify a use case as High complexity because it feels strategically important. Complexity should reflect technical and orchestration difficulty, not business priority — a High-priority use case can still be Low complexity.</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:14.5px; margin-bottom:8px;">Why the tier matters downstream</h4>
+            <p style="font-size:12.8px;">Complexity directly drives POD velocity on Page 5 — a High complexity agent consumes an entire sprint's capacity, while three Low complexity agents can share one.</p>
+          </div>
+        </div>
+
+        <div class="page-foot">
+          <div class="pfbtn" onclick="goPage('p3')">← Back: Use Case Selection</div>
+          <div class="pfbtn" onclick="goPage('p5')">Next: Effort Estimator →</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 5: EFFORT ESTIMATOR ================= -->
+    <section class="page" id="page-p5">
+      <div class="page-inner">
+        <div class="page-head">
+          <div class="eyebrow">Chapter Five</div>
+          <h1>Effort estimator — from complexity to a delivery plan</h1>
+          <p class="lede">Once every candidate use case in a domain has a complexity tier, the roadmap becomes a scheduling problem. Enter the mix of High, Medium, and Low complexity agents below to see the sprints, weeks, and quarters a build POD needs.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="calc-wrap">
+          <div class="calc-inputs">
+            <h3>Use case mix</h3>
+            <div class="qty-row">
+              <div class="qty-label"><span class="qty-dot" style="background:var(--red);"></span><div><span class="qt">High complexity</span><span class="qs">1 per sprint</span></div></div>
+              <div class="qty-input"><button onclick="adjustQty('high',-1)">−</button><span id="q-high">2</span><button onclick="adjustQty('high',1)">+</button></div>
+            </div>
+            <div class="qty-row">
+              <div class="qty-label"><span class="qty-dot" style="background:var(--gold);"></span><div><span class="qt">Medium complexity</span><span class="qs">2 per sprint</span></div></div>
+              <div class="qty-input"><button onclick="adjustQty('medium',-1)">−</button><span id="q-medium">5</span><button onclick="adjustQty('medium',1)">+</button></div>
+            </div>
+            <div class="qty-row">
+              <div class="qty-label"><span class="qty-dot" style="background:var(--green);"></span><div><span class="qt">Low complexity</span><span class="qs">3 per sprint</span></div></div>
+              <div class="qty-input"><button onclick="adjustQty('low',-1)">−</button><span id="q-low">6</span><button onclick="adjustQty('low',1)">+</button></div>
+            </div>
+
+            <div class="pod-slider">
+              <div class="pl"><span>Parallel PODs</span><span id="pod-count-lbl">1</span></div>
+              <input type="range" id="pod-count" min="1" max="4" step="1" value="1" oninput="renderCalc()">
+              <p style="font-size:11px; color:var(--ink-faint); margin:8px 0 0;">Illustrative only — assumes workload divides cleanly across PODs with shared platform foundations.</p>
+            </div>
+          </div>
+
+          <div class="calc-output">
+            <div class="out-top">
+              <div class="out-metric"><div class="om-n" id="out-sprints">9</div><div class="om-l">Total sprints</div></div>
+              <div class="out-metric"><div class="om-n" id="out-weeks">18</div><div class="om-l">Calendar weeks</div></div>
+              <div class="out-metric"><div class="om-n" id="out-quarters">1.5</div><div class="om-l">Delivery quarters</div></div>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-row"><div class="br-l">High</div><div class="bar-track"><div class="bar-fill" id="bar-high" style="background:var(--red); width:0%;"></div></div><div class="br-v" id="bar-high-v">0</div></div>
+              <div class="bar-row"><div class="br-l">Medium</div><div class="bar-track"><div class="bar-fill" id="bar-medium" style="background:var(--gold); width:0%;"></div></div><div class="br-v" id="bar-medium-v">0</div></div>
+              <div class="bar-row"><div class="br-l">Low</div><div class="bar-track"><div class="bar-fill" id="bar-low" style="background:var(--green); width:0%;"></div></div><div class="br-v" id="bar-low-v">0</div></div>
+            </div>
+            <div class="calc-note">Sprints per tier are calculated independently (High ÷ 1, Medium ÷ 2, Low ÷ 3 per sprint, rounded up) then summed and divided across the number of parallel PODs. A quarter is fixed at 6 sprints of 2 weeks each — 12 calendar weeks.</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top:44px;"><h2>Reading the output</h2></div>
+        <div class="grid3">
+          <div class="card"><h4 style="font-size:14px; margin-bottom:6px;">Sprints</h4><p style="font-size:12.5px;">The raw unit of build capacity — every estimate ultimately reduces to a sprint count.</p></div>
+          <div class="card"><h4 style="font-size:14px; margin-bottom:6px;">Weeks</h4><p style="font-size:12.5px;">Sprints translate directly to calendar time at two weeks each, useful for stakeholder timelines.</p></div>
+          <div class="card"><h4 style="font-size:14px; margin-bottom:6px;">Quarters</h4><p style="font-size:12.5px;">Six sprints define one delivery quarter — the unit leadership plans and funds against.</p></div>
+        </div>
+
+        <div class="page-foot">
+          <div class="pfbtn" onclick="goPage('p4')">← Back: Complexity</div>
+          <div class="pfbtn" onclick="goPage('p6')">Next: Build POD →</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 6: BUILD POD ================= -->
+    <section class="page" id="page-p6">
+      <div class="page-inner">
+        <div class="page-head">
+          <div class="eyebrow">Chapter Six</div>
+          <h1>Build POD — team and duration</h1>
+          <p class="lede">Effort estimates only become real when a POD is staffed against them. Every build POD follows the same core structure, working in six two-week sprints per quarter, capped at 45 hours per person per week.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title"><h2>Core POD roles</h2></div>
+        <div class="section-sub">Roles scale with domain scope; the roster below is the minimum standing team for one active functional domain.</div>
+
+        <div class="grid3" style="grid-template-columns:repeat(3,1fr); row-gap:18px;">
+          <div class="role-card"><div class="ricon">◇</div><h4>Scrum Master</h4><p>Runs the sprint cadence, removes blockers, and keeps the POD accountable to the quarter's committed backlog.</p><span class="role-cap">≤ 45 hrs / wk</span></div>
+          <div class="role-card"><div class="ricon">▦</div><h4>Data Architect (Snowflake)</h4><p>Owns the domain data model, ingestion patterns, and data product standards feeding every agent.</p><span class="role-cap">≤ 45 hrs / wk</span></div>
+          <div class="role-card"><div class="ricon">⚙</div><h4>Data Engineer</h4><p>Builds and maintains the pipelines that move data from SAP ECC/S4, BTP, and BDC into the lake.</p><span class="role-cap">≤ 45 hrs / wk</span></div>
+          <div class="role-card"><div class="ricon">⌘</div><h4>SAP Functional Expert</h4><p>Validates business process logic and ensures actions taken by agents are correct inside SAP.</p><span class="role-cap">≤ 45 hrs / wk</span></div>
+          <div class="role-card"><div class="ricon">◈</div><h4>AI Agent Developer</h4><p>Designs, builds, and hardens the agent — prompts, tools, orchestration, guardrails, and the CI/CD pipeline.</p><span class="role-cap">≤ 45 hrs / wk</span></div>
+          <div class="role-card" style="background:var(--paper-2); border-style:dashed;"><div class="ricon" style="background:transparent; color:var(--navy-800); border:1px dashed var(--line);">+</div><h4>Extend as needed</h4><p>Add specialist roles — security, change management, forward-deployed engineer — for higher-complexity domains.</p></div>
+        </div>
+
+        <div class="section-title" style="margin-top:44px;"><h2>Sprint cadence — one delivery quarter</h2></div>
+        <div class="section-sub">Six sprints of two weeks each. The POD's capacity across a quarter is 6 "high-complexity equivalents" — the same capacity the Effort Estimator on Page 5 draws from.</div>
+
+        <div class="sprint-cal">
+          <div class="sprint-block"><div class="sb-n">SPRINT 1</div><div class="sb-w">Weeks 1–2</div><div class="sb-d">Build</div></div>
+          <div class="sprint-block"><div class="sb-n">SPRINT 2</div><div class="sb-w">Weeks 3–4</div><div class="sb-d">Build</div></div>
+          <div class="sprint-block"><div class="sb-n">SPRINT 3</div><div class="sb-w">Weeks 5–6</div><div class="sb-d">Build</div></div>
+          <div class="sprint-block"><div class="sb-n">SPRINT 4</div><div class="sb-w">Weeks 7–8</div><div class="sb-d">Build / Test</div></div>
+          <div class="sprint-block"><div class="sb-n">SPRINT 5</div><div class="sb-w">Weeks 9–10</div><div class="sb-d">Test / Deploy</div></div>
+          <div class="sprint-block"><div class="sb-n">SPRINT 6</div><div class="sb-w">Weeks 11–12</div><div class="sb-d">Deploy / Hypercare</div></div>
+        </div>
+        <div class="qtr-brace">◂ ————————————— One 12-week delivery quarter ————————————— ▸</div>
+
+        <div class="two-col-note">
+          <div class="ic">↩</div>
+          <p>Go back to <a href="#" onclick="goPage('p5'); return false;" style="text-decoration:underline; color:#1c5a66; font-weight:600;">Page 5, Effort Estimator</a> to translate your specific use case mix into a sprint and quarter commitment for this POD, then staff against the roles above.</p>
+        </div>
+
+        <div class="page-foot">
+          <div class="pfbtn" onclick="goPage('p5')">← Back: Effort Estimator</div>
+          <div class="pfbtn" onclick="goPage('base')">Return to Base →</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = id === 'base' ? document.getElementById('page-base') : document.getElementById('page-'+id);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.navitem').forEach(n => n.classList.remove('active'));
+  const navEl = document.querySelector('.navitem[data-page="'+id+'"]');
+  if(navEl) navEl.classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
+}
+// initialize base active state
+document.addEventListener('DOMContentLoaded', () => {
+  // no nav item for base in this loop since it's separate block; mark manually
+});
+
+/* ============================================================
+   LANDSCAPE DIAGRAM (SVG) — used on Base and Page 1
+   ============================================================ */
+function landscapeSVG(){
+  return `
+  <svg width="100%" height="220" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="max-width:520px;">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#8C8C90"/>
+      </marker>
+    </defs>
+    <!-- current core -->
+    <rect x="10" y="30" width="120" height="54" rx="10" fill="#333333"/>
+    <text x="70" y="52" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="13">SAP ECC</text>
+    <text x="70" y="68" text-anchor="middle" fill="#C9D3E0" font-family="IBM Plex Mono" font-size="9">Today's core</text>
+
+    <line x1="130" y1="57" x2="172" y2="57" stroke="#8C8C90" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="176" y="10" width="120" height="42" rx="10" fill="#5C5C5C"/>
+    <text x="236" y="35" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="12">SAP BTP</text>
+
+    <rect x="176" y="62" width="120" height="42" rx="10" fill="#5C5C5C"/>
+    <text x="236" y="87" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="12">SAP BDC</text>
+
+    <line x1="296" y1="31" x2="338" y2="57" stroke="#8C8C90" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="296" y1="83" x2="338" y2="57" stroke="#8C8C90" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="342" y="30" width="130" height="54" rx="10" fill="#454545"/>
+    <text x="407" y="52" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="13">Snowflake</text>
+    <text x="407" y="68" text-anchor="middle" fill="#D8D8D5" font-family="IBM Plex Mono" font-size="9">Data lake</text>
+
+    <line x1="472" y1="57" x2="514" y2="57" stroke="#8C8C90" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+    <rect x="470" y="140" width="80" height="0" fill="none"/>
+
+    <!-- agents -->
+    <rect x="342" y="120" width="130" height="42" rx="10" fill="#FFE600"/>
+    <text x="407" y="140" text-anchor="middle" fill="#1A1A1A" font-family="Inter" font-weight="700" font-size="11">Insight Agents</text>
+    <text x="407" y="153" text-anchor="middle" fill="#4D4200" font-family="IBM Plex Mono" font-size="8">chat · decisioning</text>
+
+    <rect x="342" y="168" width="130" height="42" rx="10" fill="#1A1A1A"/>
+    <text x="407" y="188" text-anchor="middle" fill="#FFE600" font-family="Inter" font-weight="700" font-size="11">Action Agents</text>
+    <text x="407" y="201" text-anchor="middle" fill="#FFF6B8" font-family="IBM Plex Mono" font-size="8">execute · orchestrate</text>
+
+    <line x1="407" y1="84" x2="407" y2="118" stroke="#8C8C90" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="472" y1="145" x2="480" y2="145" stroke="#8C8C90" stroke-width="0"/>
+
+    <!-- future core, dashed -->
+    <rect x="10" y="140" width="120" height="54" rx="10" fill="none" stroke="#8C8C90" stroke-width="1.6" stroke-dasharray="5,4"/>
+    <text x="70" y="163" text-anchor="middle" fill="#1A1A1A" font-family="Inter" font-weight="700" font-size="12">SAP S/4HANA</text>
+    <text x="70" y="178" text-anchor="middle" fill="#8C8C90" font-family="IBM Plex Mono" font-size="9">Future core</text>
+    <line x1="70" y1="84" x2="70" y2="138" stroke="#8C8C90" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+    <line x1="472" y1="141" x2="500" y2="141" stroke="none"/>
+    <path d="M 472 189 C 250 189, 190 175, 132 167" fill="none" stroke="#8C8C90" stroke-width="1.6" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
+    <text x="300" y="207" text-anchor="middle" fill="#8C8C90" font-family="IBM Plex Mono" font-size="8">governed write-back, where an action agent is justified</text>
+  </svg>`;
+}
+document.getElementById('landscape-svg').innerHTML = landscapeSVG();
+document.getElementById('landscape-svg-2').innerHTML = landscapeSVG();
+
+/* ============================================================
+   AGENTIC USE CASE ANALYZER
+   ============================================================ */
+const criteria = [
+  {id:'reasoning', label:'Reasoning & context dependence', desc:'Requires logical reasoning, judgment, and adaptation to changing inputs.', val:5},
+  {id:'autonomy', label:'Autonomy & escalation', desc:'Can operate independently and knows when to escalate to a human.', val:4},
+  {id:'endgoal', label:'Process with a logical end', desc:'Has a clearly defined end goal rather than stopping at an intermediate step.', val:4},
+  {id:'actionoriented', label:'Action & goal-oriented workflow', desc:'Focused on achieving an outcome, not just executing a fixed script.', val:4},
+  {id:'multistep', label:'Multistep & interconnected tasks', desc:'Spans multiple steps, tools, or systems working together.', val:5},
+  {id:'cyclic', label:'Cyclic & repetitive process', desc:'Has a definitive cycle period and repeats frequently.', val:3},
+  {id:'learning', label:'Continuous learning potential', desc:'Can improve over time as feedback and outcomes accumulate.', val:3},
+];
+
+function renderCriteria(){
+  const wrap = document.getElementById('criteria-list');
+  wrap.innerHTML = criteria.map(c => `
+    <div class="crit-row">
+      <div class="crit-top"><span class="cl">${c.label}</span><span class="cv" id="val-${c.id}">${c.val}</span></div>
+      <div class="crit-desc">${c.desc}</div>
+      <input type="range" min="1" max="5" step="1" value="${c.val}" oninput="updateCriterion('${c.id}', this.value)">
+    </div>
+  `).join('');
+}
+function updateCriterion(id, value){
+  const c = criteria.find(x => x.id === id);
+  c.val = parseInt(value,10);
+  document.getElementById('val-'+id).textContent = c.val;
+  renderRadar();
+}
+
+function renderRadar(){
+  const svg = document.getElementById('radar-svg');
+  const cx=150, cy=150, maxR=110, n=criteria.length;
+  const angleFor = i => (Math.PI*2*i/n) - Math.PI/2;
+  const pt = (i, r) => [cx + r*Math.cos(angleFor(i)), cy + r*Math.sin(angleFor(i))];
+
+  let grid = '';
+  for(let lvl=1; lvl<=5; lvl++){
+    const r = maxR*(lvl/5);
+    const pts = criteria.map((c,i) => pt(i,r).join(',')).join(' ');
+    grid += `<polygon points="${pts}" fill="none" stroke="rgba(230,230,226,${lvl===5?0.35:0.14})" stroke-width="1"/>`;
+  }
+  let spokes = '';
+  let labels = '';
+  criteria.forEach((c,i) => {
+    const [x,y] = pt(i, maxR);
+    spokes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(230,230,226,0.14)" stroke-width="1"/>`;
+    const [lx,ly] = pt(i, maxR+18);
+    labels += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-family="IBM Plex Mono" font-size="7.6" fill="rgba(230,230,226,0.55)">${i+1}</text>`;
+  });
+
+  const dataPts = criteria.map((c,i) => pt(i, maxR*(c.val/5)).join(',')).join(' ');
+  const sum = criteria.reduce((a,c)=>a+c.val,0);
+  const avg = sum / n;
+  let color = '#A93E30';
+  if(avg >= 4.0) color = '#FFE600';
+  else if(avg >= 2.8) color = '#2A7F8E';
+
+  svg.innerHTML = `
+    ${grid}
+    ${spokes}
+    ${labels}
+    <polygon points="${dataPts}" fill="${color}33" stroke="${color}" stroke-width="2.4"/>
+    ${criteria.map((c,i) => { const [x,y]=pt(i, maxR*(c.val/5)); return `<circle cx="${x}" cy="${y}" r="3.4" fill="${color}"/>`; }).join('')}
+  `;
+
+  document.getElementById('score-num').textContent = sum;
+  const badge = document.getElementById('verdict-badge');
+  const desc = document.getElementById('verdict-desc');
+  if(avg >= 4.0){
+    badge.textContent = 'AI Action Agent';
+    badge.style.background = '#FFE600'; badge.style.color = '#1A1A1A';
+    desc.textContent = 'High reasoning, autonomy, and multi-step orchestration — a strong candidate for a fully agentic action workflow.';
+  } else if(avg >= 2.8){
+    badge.textContent = 'AI Insight Agent';
+    badge.style.background = '#2A7F8E'; badge.style.color = '#fff';
+    desc.textContent = 'Meaningful reasoning and context-awareness, but better suited to decision support than autonomous action today.';
+  } else {
+    badge.textContent = 'Not an Agentic Fit';
+    badge.style.background = '#A93E30'; badge.style.color = '#fff';
+    desc.textContent = 'Low complexity and autonomy needs — redirect to advanced analytics, reporting, or RPA rather than an agent build.';
+  }
+}
+renderCriteria();
+renderRadar();
+
+/* ============================================================
+   EFFORT ESTIMATOR
+   ============================================================ */
+const qty = {high:2, medium:5, low:6};
+function adjustQty(tier, delta){
+  qty[tier] = Math.max(0, qty[tier] + delta);
+  document.getElementById('q-'+tier).textContent = qty[tier];
+  renderCalc();
+}
+function renderCalc(){
+  const pods = parseInt(document.getElementById('pod-count').value, 10);
+  document.getElementById('pod-count-lbl').textContent = pods;
+
+  const sHigh = Math.ceil(qty.high / 1);
+  const sMedium = Math.ceil(qty.medium / 2);
+  const sLow = Math.ceil(qty.low / 3);
+  const totalSequential = sHigh + sMedium + sLow;
+  const effectiveSprints = Math.max(0, Math.ceil(totalSequential / pods));
+
+  document.getElementById('out-sprints').textContent = effectiveSprints;
+  document.getElementById('out-weeks').textContent = effectiveSprints * 2;
+  document.getElementById('out-quarters').textContent = (effectiveSprints / 6).toFixed(1);
+
+  const maxBar = Math.max(sHigh, sMedium, sLow, 1);
+  document.getElementById('bar-high').style.width = (sHigh/maxBar*100)+'%';
+  document.getElementById('bar-medium').style.width = (sMedium/maxBar*100)+'%';
+  document.getElementById('bar-low').style.width = (sLow/maxBar*100)+'%';
+  document.getElementById('bar-high-v').textContent = sHigh;
+  document.getElementById('bar-medium-v').textContent = sMedium;
+  document.getElementById('bar-low-v').textContent = sLow;
+}
+renderCalc();
+</script>
+</body>
+</html>
